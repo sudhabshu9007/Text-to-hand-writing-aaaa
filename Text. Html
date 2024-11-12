@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Forum</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="forum-container">
+    <h1>Enhanced Forum</h1>
+
+    <!-- Admin Section -->
+    <div id="admin-section">
+        <input type="password" id="adminPassword" placeholder="Enter admin password">
+        <button onclick="clearMessages()">Clear All Messages</button>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search messages..." onkeyup="searchMessages()">
+    </div>
+
+    <!-- New Post Form -->
+    <form class="forum-form" onsubmit="addMessage(event)">
+        <input type="text" id="username" placeholder="Enter your name" required>
+        <textarea id="messageContent" placeholder="Type your message here..." required></textarea>
+        <button type="submit">Post</button>
+    </form>
+
+    <!-- Forum Messages -->
+    <div class="forum-messages" id="forumMessages"></div>
+</div>
+
+<script>
+    let messages = [];
+
+    // Function to add a new message
+    function addMessage(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const content = document.getElementById('messageContent').value;
+
+        const message = {
+            id: Date.now(),
+            username: username,
+            content: content,
+            timestamp: new Date().toLocaleString(),
+            likes: 0,
+            dislikes: 0,
+            reported: false
+        };
+
+        messages.push(message);
+        document.getElementById('messageContent').value = '';
+        renderMessages();
+    }
+
+    // Function to render all messages
+    function renderMessages() {
+        const forumMessages = document.getElementById('forumMessages');
+        forumMessages.innerHTML = '';
+
+        messages.forEach((message, index) => {
+            if (!message.reported) {
+                forumMessages.innerHTML += `
+                    <div class="message" id="message-${message.id}">
+                        <div class="message-header">
+                            <span class="username">${message.username}</span>
+                            <span class="timestamp">${message.timestamp}</span>
+                        </div>
+                        <p>${message.content}</p>
+                        <div class="message-actions">
+                            <span class="like-count">${message.likes} 👍</span>
+                            <button onclick="likeMessage(${index})">Like</button>
+                            <button onclick="dislikeMessage(${index})">Dislike</button>
+                            <button onclick="editMessage(${index})">Edit</button>
+                            <button onclick="reportMessage(${index})">Report</button>
+                            <button onclick="deleteMessage(${index})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    // Function to like a message
+    function likeMessage(index) {
+        messages[index].likes += 1;
+        renderMessages();
+    }
+
+    // Function to dislike a message
+    function dislikeMessage(index) {
+        messages[index].dislikes += 1;
+        renderMessages();
+    }
+
+    // Function to delete a specific message
+    function deleteMessage(index) {
+        messages.splice(index, 1);
+        renderMessages();
+    }
+
+    // Function to edit a specific message
+    function editMessage(index) {
+        const newContent = prompt("Edit your message:", messages[index].content);
+        if (newContent) {
+            messages[index].content = newContent;
+            renderMessages();
+        }
+    }
+
+    // Function to report a message
+    function reportMessage(index) {
+        if (confirm("Are you sure you want to report this message?")) {
+            messages[index].reported = true;
+            renderMessages();
+        }
+    }
+
+    // Function to clear all messages (Admin-only)
+    function clearMessages() {
+        const adminPassword = document.getElementById('adminPassword').value;
+        if (adminPassword === "admin123") {  // Use a secure method in a real-world app
+            messages = [];
+            renderMessages();
+            alert("All messages cleared!");
+        } else {
+            alert("Incorrect admin password.");
+        }
+    }
+
+    // Function to search messages
+    function searchMessages() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filteredMessages = messages.filter(message =>
+            message.content.toLowerCase().includes(query) && !message.reported
+        );
+
+        const forumMessages = document.getElementById('forumMessages');
+        forumMessages.innerHTML = '';
+        
+        filteredMessages.forEach((message) => {
+            forumMessages.innerHTML += `
+                <div class="message" id="message-${message.id}">
+                    <div class="message-header">
+                        <span class="username">${message.username}</span>
+                        <span class="timestamp">${message.timestamp}</span>
+                    </div>
+                    <p>${message.content}</p>
+                    <div class="message-actions">
+                        <span class="like-count">${message.likes} 👍</span>
+                        <button onclick="likeMessage(${messages.indexOf(message)})">Like</button>
+                        <button onclick="dislikeMessage(${messages.indexOf(message)})">Dislike</button>
+                        <button onclick="editMessage(${messages.indexOf(message)})">Edit</button>
+                        <button onclick="reportMessage(${messages.indexOf(message)})">Report</button>
+                        <button onclick="deleteMessage(${messages.indexOf(message)})">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+</script>
+
+</body>
+</html>
